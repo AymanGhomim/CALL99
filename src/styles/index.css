@@ -13,10 +13,6 @@
   font-family: "IBM Plex Sans Arabic", "IBM Plex Sans", sans-serif;
 }
 
-html {
-  scrollbar-gutter: stable;
-}
-
 html,
 body,
 #root {

@@ -11,7 +11,6 @@ import NotificationDialog, {
 import {
   notificationsList as initialNotificationsList,
   notificationsStats,
-  audienceOptions,
   statusOptions,
 } from "../../data/notifications.data";
 
@@ -65,6 +64,17 @@ export default function Notifications() {
       time: payload.time,
       status: payload.status,
       recipients: 0,
+      channel: payload.channel,
+      deliveryStatus: payload.sendTimeMode === "now" ? "تم الإرسال بنجاح" : "قيد الجدولة",
+      sendTimeMode: payload.sendTimeMode,
+      sendDate: payload.sendDate,
+      sendTime: payload.sendTime,
+      recurrence: payload.recurrence,
+      recurrenceInterval: payload.recurrenceInterval,
+      recurrenceUnit: payload.recurrenceUnit,
+      recurrenceEndMode: payload.recurrenceEndMode,
+      recurrenceEndCount: payload.recurrenceEndCount,
+      recurrenceEndDate: payload.recurrenceEndDate,
     };
 
     setNotificationsListState((prev) => [newNotification, ...prev]);
@@ -82,6 +92,16 @@ export default function Notifications() {
               audience: payload.audience,
               time: payload.time,
               status: payload.status,
+              channel: payload.channel,
+              sendTimeMode: payload.sendTimeMode,
+              sendDate: payload.sendDate,
+              sendTime: payload.sendTime,
+              recurrence: payload.recurrence,
+              recurrenceInterval: payload.recurrenceInterval,
+              recurrenceUnit: payload.recurrenceUnit,
+              recurrenceEndMode: payload.recurrenceEndMode,
+              recurrenceEndCount: payload.recurrenceEndCount,
+              recurrenceEndDate: payload.recurrenceEndDate,
             }
           : notification,
       ),
@@ -119,7 +139,6 @@ export default function Notifications() {
         open={dialogState.open}
         mode={dialogState.mode}
         notification={dialogState.notification}
-        audienceOptions={audienceOptions}
         onClose={closeDialog}
         onCreate={handleCreate}
         onSave={handleSave}

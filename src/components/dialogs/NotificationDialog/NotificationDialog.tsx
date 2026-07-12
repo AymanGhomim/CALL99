@@ -1,28 +1,32 @@
 import { useEffect, useState } from "react";
+import { Eye } from "lucide-react";
 import toast from "react-hot-toast";
 
 import Modal from "../../ui/Modal";
 import NotificationDialogHeader from "./NotificationDialogHeader";
 import NotificationForm from "./NotificationForm";
+import NotificationDetailsView from "./NotificationDetailsView";
 import NotificationDialogFooter from "./NotificationDialogFooter";
 import {
   EMPTY_NOTIFICATION_FORM,
   NOTIFICATION_DIALOG_MODES,
+  SEND_TIME_MODES,
   buildFormFromNotification,
+  buildScheduleSummary,
 } from "./constants";
 
 const TITLES = {
   [NOTIFICATION_DIALOG_MODES.CREATE]: {
-    title: "انشاء اشعار جديد",
-    subtitle: "قم بإنشاء تنبيه أو رسالة جديدة لإرسالها للمستخدمين",
+    title: "إنشاء إشعار جديد",
+    subtitle: "قم بإرسال تنبيهات فورية أو مجدولة لمستخدمي النظام",
   },
   [NOTIFICATION_DIALOG_MODES.EDIT]: {
-    title: "تعديل الإشعار",
-    subtitle: "تعديل تفاصيل الإشعار الحالي",
+    title: "تعديل الاشعار",
+    subtitle: "قم بإرسال تنبيهات فورية أو مجدولة لمستخدمي النظام",
   },
   [NOTIFICATION_DIALOG_MODES.VIEW]: {
-    title: "عرض الإشعار",
-    subtitle: "عرض تفاصيل الإشعار المرسل",
+    title: "تفاصيل الإشعار",
+    subtitle: null,
   },
 };
 
@@ -37,27 +41,32 @@ function validateForm(form) {
     errors.audience = "فئة المستلمين مطلوبة";
   }
 
+  if (form.sendTimeMode === SEND_TIME_MODES.SCHEDULED) {
+    if (!form.sendDate) {
+      errors.sendDate = "تاريخ الإرسال مطلوب";
+    }
+    if (!form.sendTime) {
+      errors.sendTime = "وقت الإرسال مطلوب";
+    }
+  }
+
   return errors;
 }
 
 /**
- * Single dialog powering all three notification actions (view / edit / create)
- * from the notifications table + header, so there is one place that owns the
- * form shape instead of three near-duplicate modals. Mirrors AdDialog.
- *
- * `mode` controls the initial view; view mode can switch itself into edit
- * mode in place without closing/reopening the modal.
+ * Single dialog powering all three notification actions. Create/edit share
+ * NotificationForm; view mode renders NotificationDetailsView instead,
+ * since the "تفاصيل الإشعار" screen is a dedicated summary + stats layout,
+ * not just the form fields rendered disabled.
  */
 export default function NotificationDialog({
   open,
   mode = NOTIFICATION_DIALOG_MODES.VIEW,
   notification,
-  audienceOptions = [],
   onClose,
   onCreate,
   onSave,
 }) {
-  const [activeMode, setActiveMode] = useState(mode);
   const [form, setForm] = useState(EMPTY_NOTIFICATION_FORM);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -67,7 +76,6 @@ export default function NotificationDialog({
       return;
     }
 
-    setActiveMode(mode);
     setForm(
       mode === NOTIFICATION_DIALOG_MODES.CREATE
         ? EMPTY_NOTIFICATION_FORM
@@ -86,8 +94,12 @@ export default function NotificationDialog({
     ...form,
     title: form.title.trim(),
     description: form.description.trim(),
-    time: form.time.trim() || "الإرسال الفوري",
-    status: form.isActive ? "نشط" : "متوقف",
+    time: buildScheduleSummary(form),
+    status: form.isActive
+      ? form.sendTimeMode === SEND_TIME_MODES.SCHEDULED
+        ? "مجدولة"
+        : "نشط"
+      : "متوقف",
   });
 
   const handleSubmit = async (event) => {
@@ -106,7 +118,7 @@ export default function NotificationDialog({
     try {
       setSubmitting(true);
 
-      if (activeMode === NOTIFICATION_DIALOG_MODES.CREATE) {
+      if (mode === NOTIFICATION_DIALOG_MODES.CREATE) {
         await onCreate?.(payload);
       } else {
         await onSave?.({ ...payload, id: notification?.id });
@@ -120,32 +132,33 @@ export default function NotificationDialog({
     }
   };
 
-  const isViewMode = activeMode === NOTIFICATION_DIALOG_MODES.VIEW;
-  const copy = TITLES[activeMode] ?? TITLES[NOTIFICATION_DIALOG_MODES.VIEW];
+  const isViewMode = mode === NOTIFICATION_DIALOG_MODES.VIEW;
+  const copy = TITLES[mode] ?? TITLES[NOTIFICATION_DIALOG_MODES.VIEW];
 
   return (
     <Modal
       open={open}
       onClose={onClose}
       maxWidth="max-w-[640px]"
-      title={<NotificationDialogHeader title={copy.title} subtitle={copy.subtitle} />}
+      title={
+        <NotificationDialogHeader
+          title={copy.title}
+          subtitle={copy.subtitle}
+          icon={isViewMode ? Eye : undefined}
+        />
+      }
     >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-        <NotificationForm
-          form={form}
-          errors={errors}
-          onChange={updateField}
-          readOnly={isViewMode}
-          audienceOptions={audienceOptions}
-        />
-
-        <NotificationDialogFooter
-          mode={activeMode}
-          submitting={submitting}
-          onCancel={onClose}
-          onEditClick={() => setActiveMode(NOTIFICATION_DIALOG_MODES.EDIT)}
-        />
-      </form>
+      {isViewMode ? (
+        <div className="flex flex-col gap-6">
+          <NotificationDetailsView notification={notification} />
+          <NotificationDialogFooter mode={mode} onCancel={onClose} />
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <NotificationForm form={form} errors={errors} onChange={updateField} />
+          <NotificationDialogFooter mode={mode} submitting={submitting} onCancel={onClose} />
+        </form>
+      )}
     </Modal>
   );
 }

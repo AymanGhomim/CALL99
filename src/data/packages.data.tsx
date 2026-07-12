@@ -9,13 +9,13 @@ import { Archive, CheckCircle2, XCircle } from "lucide-react";
 // instead of a page-specific stats wrapper.
 export const packagesStats = [
   {
-    title: "الباقات غير النشطه",
-    value: 6,
-    icon: <XCircle size={22} />,
-    iconBg: "#fbeaea",
-    iconColor: "#ef4444",
-    change: "تحتاج إلى مراجعة",
-    changeType: "down",
+    title: "إجمالي الباقات",
+    value: 24,
+    icon: <Archive size={22} />,
+    iconBg: "#f2eaea",
+    iconColor: "#75262d",
+    change: "+3 الشهر الحالي",
+    changeType: "up",
   },
   {
     title: "الباقات النشطه",
@@ -27,13 +27,13 @@ export const packagesStats = [
     changeType: "up",
   },
   {
-    title: "إجمالي الباقات",
-    value: 24,
-    icon: <Archive size={22} />,
-    iconBg: "#f2eaea",
-    iconColor: "#75262d",
-    change: "+3 الشهر الحالي",
-    changeType: "up",
+    title: "الباقات غير النشطه",
+    value: 6,
+    icon: <XCircle size={22} />,
+    iconBg: "#fbeaea",
+    iconColor: "#ef4444",
+    change: "تحتاج إلى مراجعة",
+    changeType: "down",
   },
 ];
 

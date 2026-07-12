@@ -13,8 +13,11 @@ function ChangeLabel({ text }) {
 
 export default function ProvidersStatsSection({ stats }) {
   return (
-    <div className="mb-6 space-y-5">
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="mb-6">
+      <div
+        className="grid gap-5"
+        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))" }}
+      >
         <StatCard
           title="إجمالي الطلبات"
           value={stats.totalRequests.value}
@@ -39,9 +42,6 @@ export default function ProvidersStatsSection({ stats }) {
           iconBg="#fbeaea"
           iconColor="#ef4444"
         />
-      </div>
-
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <StatCard
           title="بانتظار التحقق"
           value={stats.awaitingVerification.value}

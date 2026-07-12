@@ -8,9 +8,9 @@ export default function UserProfileTopBar({
   const navigate = useNavigate();
 
   return (
-    <div className="mb-6 flex items-center justify-between">
+    <div className="mb-7 flex items-center justify-between">
       <div className="text-right">
-        <h1 className="text-2xl font-extrabold text-[#75262d]">{title}</h1>
+        <h1 className="text-3xl font-extrabold text-[#75262d]">{title}</h1>
         <p className="mt-1 text-sm font-medium text-gray-500">{subtitle}</p>
       </div>
 

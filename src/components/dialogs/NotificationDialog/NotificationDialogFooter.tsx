@@ -1,4 +1,4 @@
-import { Plus, Save, Pencil } from "lucide-react";
+import { Plus, Save, X } from "lucide-react";
 import { NOTIFICATION_DIALOG_MODES } from "./constants";
 
 const primaryButtonClass =
@@ -7,7 +7,18 @@ const primaryButtonClass =
 const cancelButtonClass =
   "h-14 rounded-xl border border-[#E5DCDC] bg-white px-8 text-sm font-bold text-[#3d3434] transition-colors duration-200 hover:bg-[#f7ecee]";
 
-export default function NotificationDialogFooter({ mode, onCancel, submitting, onEditClick }) {
+export default function NotificationDialogFooter({ mode, onCancel, submitting }) {
+  if (mode === NOTIFICATION_DIALOG_MODES.VIEW) {
+    return (
+      <div className="flex items-center justify-end border-t border-[#f1e8e8] pt-5">
+        <button type="button" onClick={onCancel} className={primaryButtonClass}>
+          إغلاق النافذة
+          <X size={18} />
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#f1e8e8] pt-5">
       <button type="button" onClick={onCancel} className={cancelButtonClass}>
@@ -16,22 +27,15 @@ export default function NotificationDialogFooter({ mode, onCancel, submitting, o
 
       {mode === NOTIFICATION_DIALOG_MODES.CREATE && (
         <button type="submit" disabled={submitting} className={primaryButtonClass}>
-          إنشاء الإشعار
+          ارسال الاشعار
           <Plus size={18} strokeWidth={2.5} />
         </button>
       )}
 
       {mode === NOTIFICATION_DIALOG_MODES.EDIT && (
         <button type="submit" disabled={submitting} className={primaryButtonClass}>
-          حفظ الإشعار
+          حفظ
           <Save size={18} />
-        </button>
-      )}
-
-      {mode === NOTIFICATION_DIALOG_MODES.VIEW && (
-        <button type="button" onClick={onEditClick} className={primaryButtonClass}>
-          تعديل الإشعار
-          <Pencil size={18} />
         </button>
       )}
     </div>

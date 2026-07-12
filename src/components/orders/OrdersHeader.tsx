@@ -2,13 +2,13 @@ import { Plus } from "lucide-react";
 
 export default function OrdersHeader({ onAddOrder }) {
   return (
-    <div className="mb-8 flex items-start justify-between">
+    <div className="mb-7 flex items-start justify-between">
       <div>
-        <h1 className="text-4xl font-extrabold text-[#75262d]">
+        <h1 className="text-3xl font-extrabold text-[#75262d]">
           إدارة الطلبات
         </h1>
 
-        <p className="mt-2 text-base text-[#7a6f6f]">
+        <p className="mt-1 text-sm font-medium text-gray-500">
           تحكم في جميع الطلبات والرسائل المرسلة للمستخدمين
         </p>
       </div>

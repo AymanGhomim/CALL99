@@ -1,4 +1,5 @@
 import Badge from "../ui/Badge";
+import { Link } from "react-router-dom";
 
 interface WithdrawalRequest {
   id: number;
@@ -33,7 +34,7 @@ export default function WithdrawalRequests({ requests }: { requests: WithdrawalR
           </article>
         ))}
       </div>
-      <button type="button" className="w-full bg-[#75262d] py-4 text-sm font-bold text-white transition hover:bg-[#642326]">مشاهدة جميع الطلبات</button>
+      <Link to="/wallet/withdrawals" className="block w-full bg-[#75262d] py-4 text-center text-sm font-bold text-white transition hover:bg-[#642326]">مشاهدة جميع الطلبات</Link>
     </section>
   );
 }

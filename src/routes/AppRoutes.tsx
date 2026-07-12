@@ -12,6 +12,8 @@ import ProviderProfile from "../pages/ProviderProfile/ProviderProfile";
 import Orders from "../pages/Orders/Orders";
 import Packages from "../pages/Packages/Packages";
 import Wallet from "../pages/Wallet/Wallet";
+import Withdrawals from "../pages/Wallet/Withdrawals";
+import WithdrawalDetails from "../pages/Wallet/WithdrawalDetails";
 import Ads from "../pages/Ads/Ads";
 import Complaints from "../pages/Complaints/Complaints";
 import Notifications from "../pages/Notifications/Notifications";
@@ -37,6 +39,8 @@ export default function AppRoutes() {
             <Route path="/orders" element={<Orders />} />
             <Route path="/packages" element={<Packages />} />
             <Route path="/wallet" element={<Wallet />} />
+            <Route path="/wallet/withdrawals" element={<Withdrawals />} />
+            <Route path="/wallet/withdrawals/:id" element={<WithdrawalDetails />} />
             <Route path="/ads" element={<Ads />} />
             <Route path="/complaints" element={<Complaints />} />
             <Route path="/notifications" element={<Notifications />} />

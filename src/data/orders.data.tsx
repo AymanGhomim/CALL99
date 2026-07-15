@@ -6,8 +6,10 @@ import {
   Wallet,
   Car,
 } from "lucide-react";
+import type { StatCardData } from "../types/dashboard";
+import type { OrderRecord } from "../types/entities";
 
-export const ordersStats = [
+export const ordersStats: StatCardData[] = [
   {
     title: "إجمالي الطلبات",
     value: "2,482",
@@ -66,7 +68,7 @@ export const serviceOptions = ["غسيل سيارات", "ونش", "صيانة", 
 
 export const roleOptions = ["عميل", "مقدم خدمة"];
 
-export const ordersList = [
+export const ordersList: OrderRecord[] = [
   {
     id: 1,
     orderNo: "#ORD-1001",

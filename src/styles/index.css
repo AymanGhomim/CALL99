@@ -52,3 +52,23 @@ input::selection,
 textarea::selection {
   background: transparent;
 }
+
+/* Existing components were authored for RTL. Logical text alignment keeps the
+   same visual hierarchy when the document switches to English/LTR. */
+html[dir="ltr"] .text-right {
+  text-align: left;
+}
+
+html[dir="rtl"] .text-left {
+  text-align: right;
+}
+
+[dir="ltr"] input[type="tel"],
+[dir="ltr"] input[type="email"],
+[dir="ltr"] input[data-bidi="ltr"],
+[dir="rtl"] input[type="tel"],
+[dir="rtl"] input[type="email"],
+[dir="rtl"] input[data-bidi="ltr"] {
+  direction: ltr;
+  unicode-bidi: plaintext;
+}

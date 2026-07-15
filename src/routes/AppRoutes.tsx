@@ -20,12 +20,16 @@ import Notifications from "../pages/Notifications/Notifications";
 import Settings from "../pages/Settings/Settings";
 import Coupons from "../pages/Coupons/Coupons";
 import Activity from "../pages/Activity/Activity";
+import Tickets from "../pages/Tickets/Tickets";
+import NotFound from "../pages/NotFound/NotFound";
+import AdminProfile from "../pages/AdminProfile/AdminProfile";
+import ReadyReplies from "../pages/ReadyReplies/ReadyReplies";
 
 export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/otp" element={<OTP />} />
 
@@ -43,14 +47,17 @@ export default function AppRoutes() {
             <Route path="/wallet/withdrawals/:id" element={<WithdrawalDetails />} />
             <Route path="/ads" element={<Ads />} />
             <Route path="/complaints" element={<Complaints />} />
+            <Route path="/tickets" element={<Tickets />} />
             <Route path="/notifications" element={<Notifications />} />
+            <Route path="/ready-replies" element={<ReadyReplies />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/coupons" element={<Coupons />} />
             <Route path="/activity" element={<Activity />} />
+            <Route path="/admin-profile" element={<AdminProfile />} />
           </Route>
         </Route>
 
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

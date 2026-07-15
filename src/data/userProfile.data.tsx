@@ -1,4 +1,5 @@
 import { ORDER_STATUS_OPTIONS } from "../constants/statusTones";
+import type { UserOrder } from "../types/entities";
 
 export const orderStatusData = [
   { name: "48 (92%) مكتملة", value: 48, color: "#75262d" },
@@ -17,7 +18,7 @@ export const monthlyActivityData = [
 
 export const orderStatusOptions = ORDER_STATUS_OPTIONS;
 
-export function getUserOrders(userName) {
+export function getUserOrders(userName: string): UserOrder[] {
   return [
     { id: 1, orderNo: "#ORD-9421", service: "غسيل خارجي", provider: userName, status: "مكتمل", price: "150 ريال", date: "23مايو 2026" },
     { id: 2, orderNo: "#ORD-9421", service: "غسيل خارجي", provider: userName, status: "مجدولة", price: "150 ريال", date: "23مايو 2026" },

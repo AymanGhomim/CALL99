@@ -6,8 +6,18 @@ import {
   UserCog,
   Users,
 } from "lucide-react";
+import type { StatCardData } from "../types/dashboard";
+import type { UserRecord } from "../types/entities";
 
-export const usersStats = [
+export const usersStats: StatCardData[] = [
+  {
+    title: "إجمالي المستخدمين",
+    value: "2,482",
+    change: "+12%",
+    icon: <Users size={22} />,
+    iconBg: "#fbeaea",
+    iconColor: "#75262d",
+  },
   {
     title: "مقدمو الخدمة",
     value: "456",
@@ -24,14 +34,6 @@ export const usersStats = [
     icon: <User size={22} />,
     iconBg: "#eaf2fc",
     iconColor: "#3b82f6",
-  },
-  {
-    title: "إجمالي المستخدمين",
-    value: "2,482",
-    change: "+12%",
-    icon: <Users size={22} />,
-    iconBg: "#fbeaea",
-    iconColor: "#75262d",
   },
   {
     title: "المدراء",
@@ -70,7 +72,7 @@ export const roleOptions = [
 
 export const statusOptions = ["نشط", "محظور"];
 
-export const usersList = [
+export const usersList: UserRecord[] = [
   {
     id: 1,
     name: "أحمد محمد علي",

@@ -1,6 +1,10 @@
 import { Globe, ShieldCheck, Lock, ChevronDown } from "lucide-react";
+import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
+import useLocale from "../i18n/useLocale";
+import { changeLanguage } from "../i18n";
 
-function Call99Badge({ className = "" }) {
+function Call99Badge({ className = "" }: { className?: string }) {
   return (
     <div
       className={`flex items-center justify-center rounded-2xl bg-white p-2 shadow-[0_4px_14px_rgba(0,0,0,.25)] ${className}`}
@@ -14,10 +18,12 @@ function Call99Badge({ className = "" }) {
   );
 }
 
-export default function AuthLayout({ children }) {
+export default function AuthLayout({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
+  const { language, direction } = useLocale();
   return (
     <div
-      dir="rtl"
+      dir={direction}
       className="grid h-screen overflow-hidden bg-[#FBF7F7] lg:grid-cols-[474px_1fr]"
     >
       {/* Image side */}
@@ -41,28 +47,28 @@ export default function AuthLayout({ children }) {
 
           <h2 className="text-5xl font-black">CALL99</h2>
 
-          <h3 className="mt-6 text-4xl font-bold">نظام إدارة شامل</h3>
+          <h3 className="mt-6 text-4xl font-bold">{t("auth.managementSystem")}</h3>
 
-          <p className="mt-3 text-lg">لوحة تحكم الإدارة</p>
+          <p className="mt-3 text-lg">{t("auth.adminDashboard")}</p>
 
           <div className="my-6 h-[2px] w-14 bg-white" />
 
           <p className="text-xl leading-8">
-            تحكم كامل في جميع عملياتك بسهولة وأمان
+            {t("auth.managementTagline")}
           </p>
 
           <div className="absolute bottom-8 flex items-center gap-2 text-base">
             <ShieldCheck size={18} />
-            <span>أمان، موثوقية، احترافية</span>
+            <span>{t("auth.trustTagline")}</span>
           </div>
         </div>
       </div>
 
       {/* Form side */}
       <div className="relative flex h-screen flex-col items-center justify-center overflow-y-auto px-6 py-4">
-        <button className="absolute left-6 top-6 flex h-9 items-center gap-2 rounded-full bg-[#642326] px-4 text-sm text-white">
+        <button type="button" onClick={() => void changeLanguage(language === "ar" ? "en" : "ar")} className={`absolute top-6 flex h-9 items-center gap-2 rounded-full bg-[#642326] px-4 text-sm text-white ${direction === "rtl" ? "left-6" : "right-6"}`}>
           <Globe size={14} />
-          العربية
+          {t("common.languageSwitch")}
           <ChevronDown size={16} />
         </button>
 
@@ -71,10 +77,10 @@ export default function AuthLayout({ children }) {
         <footer className="mt-4 text-center text-sm text-[#8B8787]">
           <div className="mb-1 flex items-center justify-center gap-2">
             <Lock size={15} />
-            الوصول إلى هذه الصفحة محصور بإدارة النظام فقط
+            {t("auth.restrictedAccess")}
           </div>
 
-          <p>جميع الحقوق محفوظة © CALL99 2026</p>
+          <p>{t("auth.copyright")}</p>
         </footer>
       </div>
     </div>

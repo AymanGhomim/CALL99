@@ -11,10 +11,11 @@ import {
   UserRoundPlus,
   UsersRound,
 } from "lucide-react";
+import type { ActivityCategory, ActivityEntry } from "../types/dashboard";
 
 // Category filter tabs shown under the search/filter toolbar. "الكل" is the
 // default (no category filtering applied).
-export const activityCategories = [
+export const activityCategories: ActivityCategory[] = [
   { value: "", label: "الكل" },
   { value: "طلبات الخدمات", label: "طلبات الخدمات", icon: ShoppingCart },
   { value: "المدفوعات", label: "المدفوعات", icon: Landmark },
@@ -25,7 +26,7 @@ export const activityCategories = [
 // Each item carries its own icon/colors so the timeline row doesn't need a
 // lookup table keyed by a "type" string; `dotColor` drives the small status
 // dot next to the title, `iconBg`/`iconColor` drive the icon circle.
-export const activityList = [
+export const activityList: ActivityEntry[] = [
   {
     id: 1,
     title: "انضمام مقدم خدمة جديد",

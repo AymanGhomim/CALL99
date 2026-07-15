@@ -1,56 +1,86 @@
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import Badge from "../components/ui/Badge";
-import RowActions from "../components/ui/RowActions";
+import Badge, { type BadgeTone } from "../components/ui/Badge";
+import type { DataTableColumn } from "../components/ui/DataTable";
+import RowActions, { type RowAction } from "../components/ui/RowActions";
+import i18n from "../i18n";
+import { translateStatus } from "../i18n/translateEnum";
 
-/**
- * Column-config factories for <DataTable />.
- *
- * Every *Table.jsx file used to redefine the same handful of column shapes
- * (a status badge, a linked name, a phone number, an actions row) with
- * near-identical JSX. These helpers build that config once so each table
- * file only lists what's actually different about it.
- */
+interface ColumnOptions {
+  key?: string;
+  label?: string;
+  className?: string;
+}
 
-// Badge column driven by a STATUS -> tone map (see constants/statusTones.js).
-export function statusColumn(toneMap, { key = "status", label = "الحالة" } = {}) {
+function getValue<T extends object>(row: T, key: string): unknown {
+  return (row as Record<string, unknown>)[key];
+}
+
+function asReactNode(value: unknown): ReactNode {
+  return value as ReactNode;
+}
+
+function resolveBadgeTone(tone: string | undefined): BadgeTone {
+  const tones: BadgeTone[] = ["success", "warning", "danger", "info", "sky", "purple", "neutral"];
+  return tones.includes(tone as BadgeTone) ? tone as BadgeTone : "neutral";
+}
+
+export function statusColumn<T extends object = object>(
+  toneMap: Readonly<Record<string, string>>,
+  { key = "status", label = i18n.t("common.status") }: ColumnOptions = {},
+): DataTableColumn<T> {
   return {
     key,
     label,
     align: "center",
-    render: (row) => <Badge tone={toneMap[row[key]] ?? "neutral"}>{row[key]}</Badge>,
+    render: (row) => {
+      const value = String(getValue(row, key) ?? "");
+      return <Badge tone={resolveBadgeTone(toneMap[value])}>{translateStatus(value, i18n.t.bind(i18n))}</Badge>;
+    },
   };
 }
 
-// Bold name/title that links elsewhere (user profile, provider profile...).
-export function linkColumn({ key, label, to, className = "font-extrabold text-[#3d3434]" }) {
+interface LinkColumnOptions<T extends object> extends ColumnOptions {
+  key: string;
+  label: string;
+  to: (row: T) => string;
+}
+
+export function linkColumn<T extends object>({
+  key,
+  label,
+  to,
+  className = "font-extrabold text-[#3d3434]",
+}: LinkColumnOptions<T>): DataTableColumn<T> {
   return {
     key,
     label,
     cellClassName: className,
     render: (row) => (
       <Link to={to(row)} className="transition-colors hover:text-[#75262d]">
-        {row[key]}
+        {asReactNode(getValue(row, key))}
       </Link>
     ),
   };
 }
 
-// Phone numbers stay LTR even inside an RTL row.
-export function phoneColumn({ key = "phone", label = "رقم الهاتف", className } = {}) {
+export function phoneColumn<T extends object = object>({
+  key = "phone",
+  label = i18n.t("common.phone"),
+  className,
+}: ColumnOptions = {}): DataTableColumn<T> {
   return {
     key,
     label,
     cellClassName: className,
-    render: (row) => (
-      <span className="block text-right" dir="ltr">
-        {row[key]}
-      </span>
-    ),
+    render: (row) => <span className="block text-right" dir="ltr">{asReactNode(getValue(row, key))}</span>,
   };
 }
 
-// "الإجراءات" column: pass a (row) => [{ icon, title, tone, onClick }] factory.
-export function actionsColumn(buildActions, { label = "الإجراءات" } = {}) {
+export function actionsColumn<T extends object>(
+  buildActions: (row: T) => Array<RowAction | null | false | undefined>,
+  { label = i18n.t("common.actions") }: Pick<ColumnOptions, "label"> = {},
+): DataTableColumn<T> {
   return {
     key: "actions",
     label,

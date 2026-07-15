@@ -1,4 +1,5 @@
 import { ORDER_STATUS_OPTIONS } from "../constants/statusTones";
+import type { ProviderOrder } from "../types/entities";
 
 export const providerMonthlyActivity = [
   { name: "يونيو", value: 46 },
@@ -11,7 +12,7 @@ export const providerMonthlyActivity = [
 
 export const providerOrderStatusOptions = ORDER_STATUS_OPTIONS;
 
-export function getProviderOrders(customerNames) {
+export function getProviderOrders(customerNames: string[]): ProviderOrder[] {
   const services = ["غسيل خارجي", "غسيل داخلي"];
   const statuses = ORDER_STATUS_OPTIONS;
 
@@ -19,8 +20,8 @@ export function getProviderOrders(customerNames) {
     id: index + 1,
     orderNo: "#ORD-9421",
     customer: name,
-    service: services[index % services.length],
-    status: statuses[index % statuses.length],
+    service: services[index % services.length] ?? "",
+    status: statuses[index % statuses.length] ?? "",
     price: "150 ريال",
     date: "23مايو 2026",
   }));

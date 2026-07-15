@@ -1,5 +1,18 @@
 import FiltersBar from "../ui/FiltersBar";
 
+interface UserOrdersFiltersBarProps {
+  search: string;
+  onSearchChange: (value: string) => void;
+  dateFrom: string;
+  onDateFromChange: (value: string) => void;
+  dateTo: string;
+  onDateToChange: (value: string) => void;
+  statusFilter: string;
+  onStatusFilterChange: (value: string) => void;
+  statusOptions?: string[];
+  onFilter: () => void;
+}
+
 export default function UserOrdersFiltersBar({
   search,
   onSearchChange,
@@ -11,7 +24,7 @@ export default function UserOrdersFiltersBar({
   onStatusFilterChange,
   statusOptions = [],
   onFilter,
-}) {
+}: UserOrdersFiltersBarProps) {
   return (
     <FiltersBar
       search={{

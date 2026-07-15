@@ -1,15 +1,30 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import ChartCard from "../dashboard/ChartCard";
+import type { ColoredChartDataPoint } from "../../types/dashboard";
+import { useTranslation } from "react-i18next";
+import useLocale from "../../i18n/useLocale";
+
+interface DonutChartCardProps {
+  title: string;
+  data: ColoredChartDataPoint[];
+  centerLabel?: string;
+  innerRadius?: number;
+  outerRadius?: number;
+  showLegend?: boolean;
+  legendClassName?: string;
+}
 
 export default function DonutChartCard({
   title,
   data,
-  centerLabel = "طلب كلي",
+  centerLabel,
   innerRadius = 72,
   outerRadius = 98,
   showLegend = true,
   legendClassName = "grid grid-cols-1 gap-x-6 gap-y-3 text-sm text-[#3d3434] sm:grid-cols-2",
-}) {
+}: DonutChartCardProps) {
+  const { t } = useTranslation();
+  const { formatNumber } = useLocale();
   const total = data.reduce((sum, item) => sum + (item.value || 0), 0);
 
   return (
@@ -37,9 +52,9 @@ export default function DonutChartCard({
         {/* Center label */}
         <div className="pointer-events-none absolute flex flex-col items-center justify-center">
           <span className="text-2xl font-extrabold text-[#1f1a1a]">
-            {total.toLocaleString("en-US")}
+            {formatNumber(total)}
           </span>
-          <span className="mt-1 text-xs text-[#9c9191]">{centerLabel}</span>
+          <span className="mt-1 text-xs text-[#9c9191]">{centerLabel ?? t("dashboard.charts.totalOrders")}</span>
         </div>
       </div>
 
@@ -50,11 +65,11 @@ export default function DonutChartCard({
               key={item.name}
               className="flex items-center justify-center gap-2"
             >
-              <span>{item.name}</span>
               <span
                 className="h-2.5 w-2.5 shrink-0 rounded-full"
                 style={{ background: item.color }}
               />
+              <span>{item.name}</span>
             </div>
           ))}
         </div>

@@ -1,4 +1,18 @@
-export default function CenterStatCard({ icon, iconBg, iconColor, title, value, size = "md" }) {
+import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
+import { translateLegacyText } from "../../i18n/translateEnum";
+
+interface CenterStatCardProps {
+  icon: ReactNode;
+  iconBg: string;
+  iconColor: string;
+  title: ReactNode;
+  value: ReactNode;
+  size?: "md" | "lg";
+}
+
+export default function CenterStatCard({ icon, iconBg, iconColor, title, value, size = "md" }: CenterStatCardProps) {
+  const { t } = useTranslation();
   const isLarge = size === "lg";
 
   return (
@@ -14,7 +28,7 @@ export default function CenterStatCard({ icon, iconBg, iconColor, title, value, 
         <span style={{ color: iconColor }}>{icon}</span>
       </div>
 
-      <p className="text-sm font-semibold text-gray-500">{title}</p>
+      <p className="text-sm font-semibold text-gray-500">{typeof title === "string" ? translateLegacyText(title, t) : title}</p>
       <h3 className={`mt-2 font-extrabold text-[#221b1b] ${isLarge ? "text-3xl" : "text-2xl"}`}>{value}</h3>
     </div>
   );

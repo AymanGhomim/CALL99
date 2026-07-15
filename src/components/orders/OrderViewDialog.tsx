@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   ArrowLeft,
   CircleDollarSign,
@@ -32,8 +32,55 @@ import {
   getProviderOrders,
   getProviderProfile,
 } from "../../data/providerProfile.data";
+import type { OrderRecord, ProviderOrder, UserOrder } from "../../types/entities";
+import { downloadReport } from "../../utils/download";
+import { useTranslation } from "react-i18next";
+import useLocale from "../../i18n/useLocale";
+import { translateStatus, translateValue } from "../../i18n/translateEnum";
 
-const FALLBACK_ORDER = {
+interface OrderPerson {
+  name: string;
+  phone: string;
+  email: string;
+  address: string;
+  avatar: string;
+  rating?: number;
+}
+
+type AttachmentKey = "customerImages" | "providerImages" | "inspectionImages";
+type DialogView = "order" | "user" | "provider";
+
+interface OrderDetails {
+  orderNo: string;
+  status: string;
+  serviceType: string;
+  bookingType: string;
+  createdDate: string;
+  scheduledDate: string;
+  completedDate: string;
+  description: string;
+  notes: string;
+  pricingModel: string;
+  paymentTime: string;
+  estimatedPrice: string;
+  finalPrice: string;
+  platformFee: string;
+  providerEarnings: string;
+  paymentGateway: string;
+  transactionNumber: string;
+  refundAmount: string;
+  walletAmount: string;
+  provider: OrderPerson;
+  customer: OrderPerson;
+  timeline: Array<{ label: string; time: string; tone: string }>;
+  attachments: Record<AttachmentKey, string[]>;
+  customerLocation: string;
+  providerLocation: string;
+  distance: string;
+  mapsLink: string;
+}
+
+const FALLBACK_ORDER: OrderDetails = {
   orderNo: "#ORD-1001",
   status: "جديد",
   serviceType: "غسيل سيارات",
@@ -95,13 +142,20 @@ const FALLBACK_ORDER = {
   mapsLink: "https://maps.google.com/?q=Riyadh±King+Fahad+Street",
 };
 
-const tabsList = [
-  { key: "customerImages", label: "صور العميل" },
-  { key: "providerImages", label: "صور مقدم الخدمة" },
-  { key: "inspectionImages", label: "صور التفتيش" },
+const tabsList: Array<{ key: AttachmentKey; labelKey: string }> = [
+  { key: "customerImages", labelKey: "orderDetails.customerImages" },
+  { key: "providerImages", labelKey: "orderDetails.providerImages" },
+  { key: "inspectionImages", labelKey: "orderDetails.inspectionImages" },
 ];
 
-function Field({ label, value, className = "", containerClassName = "" }) {
+interface FieldProps {
+  label: string;
+  value: ReactNode;
+  className?: string;
+  containerClassName?: string;
+}
+
+function Field({ label, value, className = "", containerClassName = "" }: FieldProps) {
   return (
     <div
       className={`rounded-[18px] border border-[#f1e7e8] bg-[#fcf8f8] p-3.5 ${containerClassName}`}
@@ -123,6 +177,13 @@ function PersonCard({
   showRating = true,
   actionLabel,
   onAction,
+}: {
+  person: OrderPerson;
+  title: string;
+  accent?: string;
+  showRating?: boolean;
+  actionLabel?: string;
+  onAction?: () => void;
 }) {
   return (
     <div className="rounded-[22px] border border-[#f1e7e8] bg-[#fcfbfb] p-5 shadow-sm">
@@ -183,13 +244,14 @@ function PersonCard({
   );
 }
 
-function UserProfileInlineView({ customerName, onBack }) {
+function UserProfileInlineView({ customerName, onBack, onOrderView }: { customerName: string; onBack: () => void; onOrderView: (order: OrderRecord) => void }) {
+  const { t } = useTranslation();
   const user = useMemo(() => {
     const matchedUser = usersList.find((item) => item.name === customerName);
     return (
       matchedUser ??
       usersList.find((item) => item.role === "عميل") ??
-      usersList[0]
+      usersList[0]!
     );
   }, [customerName]);
 
@@ -205,11 +267,11 @@ function UserProfileInlineView({ customerName, onBack }) {
           className="flex items-center gap-2 rounded-full bg-[#f8f1f2] px-3 py-2 text-sm font-extrabold text-[#75262d]"
         >
           <ArrowLeft size={16} />
-          رجوع لتفاصيل الطلب
+          {t("orderDetails.back")}
         </button>
 
         <div className="text-lg font-extrabold text-[#75262d]">
-          ملف المستخدم
+          {t("modules.profile.title")}
         </div>
       </div>
 
@@ -229,13 +291,26 @@ function UserProfileInlineView({ customerName, onBack }) {
 
       <div className="rounded-[24px] border border-[#f1e7e8] bg-white p-5 shadow-sm">
         <div className="mb-4 text-lg font-extrabold text-[#75262d]">
-          الطلبات المرتبطة
+          {t("orderDetails.linkedOrders")}
         </div>
         <UserOrdersTable
           rows={orders.slice(0, 4)}
           totalCount={orders.length}
           currentPage={1}
           totalPages={1}
+          onView={(order: UserOrder) => onOrderView({
+            id: order.id,
+            orderNo: order.orderNo,
+            customerName: user.name,
+            providerName: order.provider,
+            customerPhone: extras.phone,
+            providerPhone: t("orderDetails.unknown"),
+            service: order.service,
+            role: "عميل",
+            status: order.status,
+            price: Number.parseFloat(order.price.replace(/[^\d.]/g, "")) || 0,
+            date: order.date,
+          })}
         />
       </div>
 
@@ -243,13 +318,19 @@ function UserProfileInlineView({ customerName, onBack }) {
         totalExpenses={extras.financialSummary.totalExpenses}
         totalOrders={extras.financialSummary.totalOrders}
         commissions={extras.financialSummary.commissions}
-        onViewReport={() => {}}
+        onViewReport={() => downloadReport(`user-${user.id}-report.txt`, [
+          [t("tables.userName"), user.name],
+          [t("common.totalExpenses"), extras.financialSummary.totalExpenses],
+          [t("stats.totalOrders"), extras.financialSummary.totalOrders],
+          [t("provider.commissions"), extras.financialSummary.commissions],
+        ])}
       />
     </div>
   );
 }
 
-function ProviderProfileInlineView({ customerName, providerName, onBack }) {
+function ProviderProfileInlineView({ customerName, providerName, onBack, onOrderView }: { customerName: string; providerName: string; onBack: () => void; onOrderView: (order: OrderRecord) => void }) {
+  const { t } = useTranslation();
   const provider = useMemo(() => getProviderProfile(), []);
   const orders = useMemo(
     () => getProviderOrders([customerName]),
@@ -265,11 +346,11 @@ function ProviderProfileInlineView({ customerName, providerName, onBack }) {
           className="flex items-center gap-2 rounded-full bg-[#f8f1f2] px-3 py-2 text-sm font-extrabold text-[#75262d]"
         >
           <ArrowLeft size={16} />
-          رجوع لتفاصيل الطلب
+          {t("orderDetails.back")}
         </button>
 
         <div className="text-lg font-extrabold text-[#75262d]">
-          ملف مقدم الخدمة
+          {t("modules.providerProfile.title")}
         </div>
       </div>
 
@@ -305,13 +386,25 @@ function ProviderProfileInlineView({ customerName, providerName, onBack }) {
 
       <div className="rounded-[24px] border border-[#f1e7e8] bg-white p-5 shadow-sm">
         <div className="mb-4 text-lg font-extrabold text-[#75262d]">
-          طلبات مقدم الخدمة
+          {t("orderDetails.providerOrders")}
         </div>
         <ProviderOrdersTable
           rows={orders}
           totalCount={orders.length}
           currentPage={1}
           totalPages={1}
+          onView={(order: ProviderOrder) => onOrderView({
+            id: order.id,
+            orderNo: order.orderNo,
+            customerName: order.customer,
+            providerName,
+            customerPhone: t("orderDetails.unknown"), providerPhone: t("orderDetails.unknown"),
+            service: order.service,
+            role: "مقدم خدمة",
+            status: order.status,
+            price: Number.parseFloat(order.price.replace(/[^\d.]/g, "")) || 0,
+            date: order.date,
+          })}
         />
       </div>
 
@@ -320,56 +413,84 @@ function ProviderProfileInlineView({ customerName, providerName, onBack }) {
         totalOrders={provider.financialSummary.totalOrders}
         commissions={provider.financialSummary.commissions}
         netProfit={provider.financialSummary.netProfit}
-        onViewReport={() => {}}
+        onViewReport={() => downloadReport("provider-financial-report.txt", [
+          [t("orders.provider"), providerName],
+          [t("provider.totalRevenue"), provider.financialSummary.totalRevenue],
+          [t("stats.totalOrders"), provider.financialSummary.totalOrders],
+          [t("provider.commissions"), provider.financialSummary.commissions],
+          [t("provider.netProfit"), provider.financialSummary.netProfit],
+        ])}
       />
 
-      <ProviderReviewsCard reviews={provider.reviews} onViewAll={() => {}} />
+      <ProviderReviewsCard reviews={provider.reviews} />
     </div>
   );
 }
 
-export default function OrderViewDialog({ open, onClose, order }) {
-  const [activeTab, setActiveTab] = useState("customerImages");
-  const [dialogView, setDialogView] = useState("order");
+interface OrderViewDialogProps {
+  open: boolean;
+  onClose: () => void;
+  order: OrderRecord | null;
+}
+
+export default function OrderViewDialog({ open, onClose, order }: OrderViewDialogProps) {
+  const { t } = useTranslation();
+  const { direction, formatCurrency } = useLocale();
+  const [activeTab, setActiveTab] = useState<AttachmentKey>("customerImages");
+  const [dialogView, setDialogView] = useState<DialogView>("order");
+  const [relatedOrder, setRelatedOrder] = useState<OrderRecord | null>(null);
 
   useEffect(() => {
     if (open) {
       setDialogView("order");
+      setRelatedOrder(null);
     }
   }, [open]);
 
-  const details = useMemo(() => {
-    const price = order?.price ?? FALLBACK_ORDER.finalPrice;
+  const details = useMemo<OrderDetails>(() => {
+    const activeOrder = relatedOrder ?? order;
+    const price = activeOrder?.price ?? FALLBACK_ORDER.finalPrice;
 
     return {
       ...FALLBACK_ORDER,
-      ...order,
-      status: order?.status ?? FALLBACK_ORDER.status,
-      orderNo: order?.orderNo ?? FALLBACK_ORDER.orderNo,
-      serviceType: order?.service ?? FALLBACK_ORDER.serviceType,
-      bookingType: order?.role ?? FALLBACK_ORDER.bookingType,
-      createdDate: order?.date ?? FALLBACK_ORDER.createdDate,
-      estimatedPrice: `${price} ر.س`,
-      finalPrice: `${price} ر.س`,
+      status: activeOrder?.status ?? FALLBACK_ORDER.status,
+      orderNo: activeOrder?.orderNo ?? FALLBACK_ORDER.orderNo,
+      serviceType: activeOrder?.service ?? FALLBACK_ORDER.serviceType,
+      bookingType: activeOrder?.role ?? FALLBACK_ORDER.bookingType,
+      createdDate: activeOrder?.date ?? FALLBACK_ORDER.createdDate,
+      estimatedPrice: formatCurrency(price),
+      finalPrice: formatCurrency(price),
+      platformFee: formatCurrency(15), providerEarnings: formatCurrency(135),
+      refundAmount: formatCurrency(0), walletAmount: formatCurrency(0),
       provider: {
         ...FALLBACK_ORDER.provider,
-        name: order?.providerName ?? FALLBACK_ORDER.provider.name,
-        phone: order?.providerPhone ?? FALLBACK_ORDER.provider.phone,
+        name: activeOrder?.providerName ?? t("orderDetails.fallbackProviderName"),
+        phone: activeOrder?.providerPhone ?? FALLBACK_ORDER.provider.phone,
+        address: t("orderDetails.fallbackProviderAddress"),
       },
       customer: {
         ...FALLBACK_ORDER.customer,
-        name: order?.customerName ?? FALLBACK_ORDER.customer.name,
-        phone: order?.customerPhone ?? FALLBACK_ORDER.customer.phone,
+        name: activeOrder?.customerName ?? t("orderDetails.fallbackCustomerName"),
+        phone: activeOrder?.customerPhone ?? FALLBACK_ORDER.customer.phone,
+        address: t("orderDetails.fallbackCustomerAddress"),
       },
+      customerLocation: t("orderDetails.fallbackCustomerLocation"),
+      providerLocation: t("orderDetails.fallbackProviderLocation"),
+      distance: t("orderDetails.fallbackDistance"),
     };
-  }, [order]);
+  }, [formatCurrency, order, relatedOrder, t]);
 
-  const provider = details.provider ?? FALLBACK_ORDER.provider;
-  const customer = details.customer ?? FALLBACK_ORDER.customer;
-  const timeline = details.timeline ?? FALLBACK_ORDER.timeline;
-  const attachments = details.attachments ?? FALLBACK_ORDER.attachments;
+  const openRelatedOrder = (nextOrder: OrderRecord) => {
+    setRelatedOrder(nextOrder);
+    setDialogView("order");
+  };
 
-  const activeGallery = attachments?.[activeTab] ?? [];
+  const provider = details.provider;
+  const customer = details.customer;
+  const timeline = details.timeline;
+  const attachments = details.attachments;
+
+  const activeGallery = attachments[activeTab];
 
   return (
     <Modal
@@ -377,31 +498,33 @@ export default function OrderViewDialog({ open, onClose, order }) {
       onClose={onClose}
       title={
         dialogView === "order"
-          ? "تفاصيل الطلب"
+          ? t("orderDetails.title")
           : dialogView === "user"
-            ? "ملف المستخدم"
-            : "ملف مقدم الخدمة"
+            ? t("modules.profile.title")
+            : t("modules.providerProfile.title")
       }
       maxWidth="max-w-[1200px]"
     >
       {dialogView === "user" ? (
         <UserProfileInlineView
-          customerName={details.customer?.name}
+          customerName={details.customer.name}
           onBack={() => setDialogView("order")}
+          onOrderView={openRelatedOrder}
         />
       ) : dialogView === "provider" ? (
         <ProviderProfileInlineView
-          customerName={details.customer?.name}
-          providerName={details.provider?.name}
+          customerName={details.customer.name}
+          providerName={details.provider.name}
           onBack={() => setDialogView("order")}
+          onOrderView={openRelatedOrder}
         />
       ) : (
-        <div className="space-y-5 text-right" dir="rtl">
+        <div className="space-y-5 text-start" dir={direction}>
           <section className="rounded-[24px] border border-[#f1e7e8] bg-[#f8f1f2] p-5 shadow-sm">
             <div className="grid gap-4 xl:grid-cols-[1fr_auto] xl:items-center">
               <div>
                 <div className="text-[11px] font-extrabold text-[#9f8a8a]">
-                  رقم الطلب
+                  {t("orders.orderNumber")}
                 </div>
                 <div className="text-2xl font-extrabold text-[#75262d]">
                   {details.orderNo}
@@ -410,40 +533,40 @@ export default function OrderViewDialog({ open, onClose, order }) {
 
               <div className="flex flex-wrap items-center gap-2">
                 <Badge tone={ORDER_STATUS_TONE[details.status] ?? "neutral"}>
-                  {details.status}
+                  {translateStatus(details.status, t)}
                 </Badge>
                 <div className="rounded-full bg-white px-3 py-1 text-xs font-extrabold text-[#75262d] shadow-sm">
-                  {details.serviceType}
+                  {translateValue(details.serviceType, t)}
                 </div>
                 <div className="rounded-full bg-white px-3 py-1 text-xs font-extrabold text-[#3d3434] shadow-sm">
-                  {details.bookingType}
+                  {translateValue(details.bookingType, t)}
                 </div>
               </div>
             </div>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <Field label="تاريخ الإنشاء" value={details.createdDate} />
-              <Field label="تاريخ الموعد" value={details.scheduledDate} />
-              <Field label="تاريخ الاكتمال" value={details.completedDate} />
-              <Field label="نوع الخدمة" value={details.serviceType} />
+              <Field label={t("orderDetails.createdDate")} value={details.createdDate} />
+              <Field label={t("orderDetails.scheduledDate")} value={details.scheduledDate} />
+              <Field label={t("orderDetails.completedDate")} value={details.completedDate} />
+              <Field label={t("orderDetails.serviceType")} value={translateValue(details.serviceType, t)} />
             </div>
           </section>
 
           <div className="grid gap-4 xl:grid-cols-2">
             <PersonCard
               person={provider}
-              title="بيانات مقدم الخدمة"
+              title={t("orderDetails.providerData")}
               accent="#75262d"
               showRating
-              actionLabel="عرض ملف مقدم الخدمة"
+              actionLabel={t("orderDetails.viewProvider")}
               onAction={() => setDialogView("provider")}
             />
             <PersonCard
               person={customer}
-              title="بيانات العميل"
+              title={t("orderDetails.customerData")}
               accent="#4c8f70"
               showRating={false}
-              actionLabel="عرض ملف المستخدم"
+              actionLabel={t("orderDetails.viewUser")}
               onAction={() => setDialogView("user")}
             />
           </div>
@@ -451,20 +574,20 @@ export default function OrderViewDialog({ open, onClose, order }) {
           <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
             <section className="rounded-[24px] border border-[#f1e7e8] bg-white p-5 shadow-sm">
               <div className="mb-4 text-lg font-extrabold text-[#75262d]">
-                بيانات الطلب
+                {t("orderDetails.orderData")}
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                <Field label="تاريخ الإنشاء" value={details.createdDate} />
-                <Field label="تاريخ الموعد" value={details.scheduledDate} />
-                <Field label="تاريخ الاكتمال" value={details.completedDate} />
+                <Field label={t("orderDetails.createdDate")} value={details.createdDate} />
+                <Field label={t("orderDetails.scheduledDate")} value={details.scheduledDate} />
+                <Field label={t("orderDetails.completedDate")} value={details.completedDate} />
                 <Field
-                  label="الوصف"
-                  value={details.description}
+                  label={t("orderDetails.description")}
+                  value={details.description === FALLBACK_ORDER.description ? t("orderDetails.fallbackDescription") : details.description}
                   containerClassName="sm:col-span-2"
                 />
                 <Field
-                  label="ملاحظات"
-                  value={details.notes}
+                  label={t("orderDetails.notes")}
+                  value={details.notes === FALLBACK_ORDER.notes ? t("orderDetails.fallbackNotes") : details.notes}
                   containerClassName="sm:col-span-2"
                 />
               </div>
@@ -473,30 +596,30 @@ export default function OrderViewDialog({ open, onClose, order }) {
             <section className="rounded-[24px] border border-[#f1e7e8] bg-white p-5 shadow-sm">
               <div className="mb-4 flex items-center gap-2 text-lg font-extrabold text-[#75262d]">
                 <CircleDollarSign size={18} />
-                الدفع
+                {t("orderDetails.payment")}
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
-                <Field label="نموذج التسعير" value={details.pricingModel} />
-                <Field label="وقت الدفع" value={details.paymentTime} />
-                <Field label="السعر المقدر" value={details.estimatedPrice} />
-                <Field label="السعر النهائي" value={details.finalPrice} />
-                <Field label="رسوم المنصة" value={details.platformFee} />
+                <Field label={t("orderDetails.pricingModel")} value={details.pricingModel === FALLBACK_ORDER.pricingModel ? t("orderDetails.fixedPrice") : details.pricingModel} />
+                <Field label={t("orderDetails.paymentTime")} value={translateValue(details.paymentTime, t)} />
+                <Field label={t("orderDetails.estimatedPrice")} value={details.estimatedPrice} />
+                <Field label={t("orderDetails.finalPrice")} value={details.finalPrice} />
+                <Field label={t("orderDetails.platformFee")} value={details.platformFee} />
                 <Field
-                  label="مكاسب مقدم الخدمة"
+                  label={t("orderDetails.providerEarnings")}
                   value={details.providerEarnings}
                 />
-                <Field label="بوابة الدفع" value={details.paymentGateway} />
-                <Field label="رقم المعاملة" value={details.transactionNumber} />
-                <Field label="مبلغ الاسترداد" value={details.refundAmount} />
-                <Field label="مبلغ المحفظة" value={details.walletAmount} />
+                <Field label={t("orderDetails.paymentGateway")} value={translateValue(details.paymentGateway, t)} />
+                <Field label={t("finance.transactionNumber")} value={details.transactionNumber} />
+                <Field label={t("orderDetails.refundAmount")} value={details.refundAmount} />
+                <Field label={t("orderDetails.walletAmount")} value={details.walletAmount} />
               </div>
             </section>
           </div>
 
           <section className="rounded-[24px] border border-[#f1e7e8] bg-white p-5 shadow-sm">
             <div className="mb-4 text-lg font-extrabold text-[#75262d]">
-              المسار
+              {t("orderDetails.timeline")}
             </div>
 
             <div className="relative space-y-4 pr-8">
@@ -522,7 +645,7 @@ export default function OrderViewDialog({ open, onClose, order }) {
 
                   <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                     <div className="text-sm font-extrabold text-[#3d3434]">
-                      {item.label}
+                      {translateStatus(item.label, t)}
                     </div>
                     <div className="text-xs font-bold text-[#8a7777]">
                       {item.time}
@@ -535,7 +658,7 @@ export default function OrderViewDialog({ open, onClose, order }) {
 
           <section className="rounded-[24px] border border-[#f1e7e8] bg-white p-5 shadow-sm">
             <div className="mb-4 text-lg font-extrabold text-[#75262d]">
-              المرفقات
+              {t("orderDetails.attachments")}
             </div>
 
             <div className="mb-4 flex flex-wrap gap-2">
@@ -550,7 +673,7 @@ export default function OrderViewDialog({ open, onClose, order }) {
                       : "bg-[#f8f1f2] text-[#75262d]"
                   }`}
                 >
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </button>
               ))}
             </div>
@@ -571,7 +694,7 @@ export default function OrderViewDialog({ open, onClose, order }) {
 
               {activeGallery.length === 0 && (
                 <div className="rounded-2xl border border-dashed border-[#e7d2d4] bg-[#fbf7f7] p-8 text-center text-sm font-bold text-[#8a7777]">
-                  لا توجد صور لهذا القسم.
+                  {t("orderDetails.noImages")}
                 </div>
               )}
             </div>
@@ -579,7 +702,7 @@ export default function OrderViewDialog({ open, onClose, order }) {
 
           <section className="rounded-[24px] border border-[#f1e7e8] bg-white p-5 shadow-sm">
             <div className="mb-4 text-lg font-extrabold text-[#75262d]">
-              الخريطة
+              {t("orderDetails.map")}
             </div>
 
             <div className="relative h-56 overflow-hidden rounded-[22px] border border-[#efe2e4] bg-gradient-to-br from-[#f5eaeb] via-[#f8f0f2] to-[#f4f2f2] p-5">
@@ -589,24 +712,24 @@ export default function OrderViewDialog({ open, onClose, order }) {
                 <div className="text-center">
                   <MapPinned size={28} className="mx-auto text-[#75262d]" />
                   <div className="mt-2 text-sm font-extrabold text-[#75262d]">
-                    خريطة مؤقتة
+                    {t("orderDetails.temporaryMap")}
                   </div>
                   <div className="mt-1 text-xs font-semibold text-[#8a7777]">
-                    مسار الموقع وموعد الاستلام
+                    {t("orderDetails.routeHint")}
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <Field label="موقع العميل" value={details.customerLocation} />
+              <Field label={t("orderDetails.customerLocation")} value={details.customerLocation} />
               <Field
-                label="موقع مقدم الخدمة"
+                label={t("orderDetails.providerLocation")}
                 value={details.providerLocation}
               />
-              <Field label="المسافة" value={details.distance} />
+              <Field label={t("orderDetails.distance")} value={details.distance} />
               <Field
-                label="رابط خرائط جوجل"
+                label={t("orderDetails.googleMaps")}
                 value={
                   <a
                     href={details.mapsLink}
@@ -614,7 +737,7 @@ export default function OrderViewDialog({ open, onClose, order }) {
                     rel="noreferrer"
                     className="text-[#75262d] underline"
                   >
-                    افتح في خرائط جوجل
+                    {t("orderDetails.openMaps")}
                   </a>
                 }
                 className="break-all"
@@ -628,7 +751,7 @@ export default function OrderViewDialog({ open, onClose, order }) {
               onClick={onClose}
               className="!w-auto h-11 rounded-lg px-8 text-sm"
             >
-              إغلاق
+              {t("common.close")}
             </Button>
           </div>
         </div>

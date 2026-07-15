@@ -5,7 +5,7 @@ export default function UserProfileCard({
   phone,
   memberSince,
   status = "نشط",
-}) {
+}: { name: string; phone: string; memberSince: string; status?: string }) {
   return (
     <div className="mb-6 flex items-center justify-between rounded-xl border border-[#f2e8e8] bg-white p-8 shadow-sm">
       {/* Left side: Avatar with status badge */}

@@ -1,6 +1,7 @@
 import StatsGrid from "../dashboard/StatsGrid";
+import type { StatCardData } from "../../types/dashboard";
 
-export default function AdsStats({ stats }) {
+export default function AdsStats({ stats }: { stats: StatCardData[] }) {
   return (
     <div className="mb-7">
       <StatsGrid stats={stats} />

@@ -1,6 +1,6 @@
 import { Ban } from "lucide-react";
 
-export default function BlockUserButton({ onClick, label = "حظر المستخدم" }) {
+export default function BlockUserButton({ onClick, label = "حظر المستخدم" }: { onClick: () => void; label?: string }) {
   return (
     <button
       type="button"

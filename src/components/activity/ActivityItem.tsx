@@ -1,4 +1,8 @@
-export default function ActivityItem({ activity }) {
+import type { ActivityEntry } from "../../types/dashboard";
+import useLocale from "../../i18n/useLocale";
+
+export default function ActivityItem({ activity }: { activity: ActivityEntry }) {
+  const { formatTimeText } = useLocale();
   const Icon = activity.icon;
 
   return (
@@ -33,7 +37,7 @@ export default function ActivityItem({ activity }) {
           </div>
 
           <p className="mt-3 text-sm font-semibold text-[#3d3434]">
-            {activity.time}
+            {formatTimeText(activity.time)}
           </p>
 
           <p className="mt-1 text-xs text-gray-500">{activity.date}</p>

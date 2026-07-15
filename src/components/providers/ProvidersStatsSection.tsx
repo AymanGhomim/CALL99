@@ -1,17 +1,17 @@
-import { AlertTriangle, CalendarClock, ClipboardList, ShieldCheck, UsersRound } from "lucide-react";
+import { CalendarClock, CheckCircle2, ClipboardList, ShieldCheck, XCircle } from "lucide-react";
 import StatCard from "../dashboard/StatCard";
+import { useTranslation } from "react-i18next";
 
-
-function ChangeLabel({ text }) {
-  return (
-    <span className="flex items-center gap-1">
-      <span className="text-emerald-500">↗</span>
-      {text}
-    </span>
-  );
+interface ProviderRequestStats {
+  total: { value: number | string };
+  pendingReview: { value: number | string };
+  rejected: { value: number | string };
+  awaitingVerification: { value: number | string };
+  approved: { value: number | string };
 }
 
-export default function ProvidersStatsSection({ stats }) {
+export default function ProvidersStatsSection({ stats }: { stats: ProviderRequestStats }) {
+  const { t } = useTranslation();
   return (
     <div className="mb-6">
       <div
@@ -19,40 +19,37 @@ export default function ProvidersStatsSection({ stats }) {
         style={{ gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))" }}
       >
         <StatCard
-          title="إجمالي الطلبات"
-          value={stats.totalRequests.value}
-          change={<ChangeLabel text={stats.totalRequests.change} />}
+          title={t("provider.totalApplications")}
+          value={stats.total.value}
           icon={<ClipboardList />}
           iconBg="#f1eafb"
           iconColor="#8b5cf6"
         />
         <StatCard
-          title="قيد المراجعه"
-          value={stats.underReview.value}
-          change={<ChangeLabel text={stats.underReview.change} />}
+          title={t("provider.pendingReview")}
+          value={stats.pendingReview.value}
           icon={<CalendarClock />}
           iconBg="#e8f8ef"
           iconColor="#16a34a"
         />
         <StatCard
-          title="مستندات ناقصه"
-          value={stats.missingDocuments.value}
-          change={<ChangeLabel text={stats.missingDocuments.change} />}
-          icon={<AlertTriangle />}
+          title={t("provider.rejectedApplications")}
+          value={stats.rejected.value}
+          icon={<XCircle />}
           iconBg="#fbeaea"
           iconColor="#ef4444"
         />
         <StatCard
-          title="بانتظار التحقق"
+          title={t("provider.awaitingVerification")}
           value={stats.awaitingVerification.value}
           icon={<ShieldCheck size={24} />}
           iconBg="#f1eafb"
           iconColor="#8b5cf6"
         />
         <StatCard
-          title="قيد مراجعة المستندات"
-          value={stats.documentsReview.value}
-          icon={<UsersRound size={24} />}
+          title={t("provider.approvedApplications")}
+          value={stats.approved.value}
+          icon={<CheckCircle2 size={24} />}
           iconBg="#fdf1e3"
           iconColor="#c9862e"
         />

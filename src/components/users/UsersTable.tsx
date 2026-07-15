@@ -1,7 +1,22 @@
-import { Ban, Eye, Pencil, XCircle } from "lucide-react";
+import { Ban, Eye, RotateCcw, XCircle } from "lucide-react";
 import DataTable from "../ui/DataTable";
 import { linkColumn, phoneColumn, statusColumn, actionsColumn } from "../../utils/tableColumns";
 import { USER_ROLE_TONE } from "../../constants/statusTones";
+import type { UserRecord } from "../../types/entities";
+import { useTranslation } from "react-i18next";
+
+interface UsersTableProps {
+  rows: UserRecord[];
+  totalCount: number;
+  currentPage?: number;
+  totalPages?: number;
+  onView?: (user: UserRecord) => void;
+  onBlock?: (user: UserRecord) => void;
+  onDelete?: (user: UserRecord) => void;
+  onPageChange?: (page: number) => void;
+  loading?: boolean;
+  emptyMessage?: string;
+}
 
 export default function UsersTable({
   rows,
@@ -9,34 +24,47 @@ export default function UsersTable({
   currentPage = 1,
   totalPages = 1,
   onView,
-  onEdit,
   onBlock,
   onDelete,
-}) {
+  onPageChange,
+  loading = false,
+  emptyMessage,
+}: UsersTableProps) {
+  const { t } = useTranslation();
   const columns = [
-    linkColumn({ key: "name", label: "اسم المستخدم", to: (row) => `/users/${row.id}` }),
-    phoneColumn(),
-    statusColumn(USER_ROLE_TONE, { key: "role", label: "الدور" }),
-    { key: "ordersCount", label: "عدد الطلبات", render: (row) => `${row.ordersCount} طلب` },
-    { key: "createdAt", label: "تاريخ الإنشاء" },
-    statusColumn(
-      { نشط: "success", "غير نشط": "danger" },
-      { label: "الحالة" },
+    linkColumn({
+      key: "name",
+      label: t("tables.userName"),
+      to: (row: UserRecord) => `/users/${row.id}`,
+    }),
+    phoneColumn<UserRecord>({ label: t("common.phone") }),
+    statusColumn<UserRecord>(USER_ROLE_TONE, { key: "role", label: t("common.role") }),
+    { key: "ordersCount", label: t("tables.ordersCount"), render: (row: UserRecord) => row.ordersCount },
+    { key: "createdAt", label: t("common.createdAt") },
+    statusColumn<UserRecord>(
+      { نشط: "success", محظور: "danger", "غير نشط": "danger" },
+      { label: t("common.status") },
     ),
-    actionsColumn((row) => [
-      { icon: Eye, title: "عرض", tone: "success", onClick: () => onView?.(row) },
-      { icon: Pencil, title: "تعديل", tone: "neutral", onClick: () => onEdit?.(row) },
-      { icon: Ban, title: "حظر", tone: "danger", onClick: () => onBlock?.(row) },
-      { icon: XCircle, title: "حذف", tone: "danger", onClick: () => onDelete?.(row) },
+    actionsColumn((row: UserRecord) => [
+      { icon: Eye, title: t("common.view"), tone: "success", onClick: () => onView?.(row) },
+      {
+        icon: row.status === "محظور" ? RotateCcw : Ban,
+        title: t(row.status === "محظور" ? "tables.unblock" : "tables.block"),
+        tone: row.status === "محظور" ? "success" : "danger",
+        onClick: () => onBlock?.(row),
+      },
+      { icon: XCircle, title: t("common.delete"), tone: "danger", onClick: () => onDelete?.(row) },
     ]),
   ];
 
   return (
     <DataTable
-      title="قائمة المستخدمين"
+      title={t("tables.usersList")}
       columns={columns}
       rows={rows}
-      pagination={{ currentPage, totalPages, totalCount, itemLabel: "مستخدم" }}
+      loading={loading}
+      emptyMessage={emptyMessage ?? t("tables.noUsers")}
+      pagination={{ currentPage, totalPages, totalCount, itemLabel: t("tables.itemUser"), shownCount: rows.length || 10, onPageChange }}
     />
   );
 }

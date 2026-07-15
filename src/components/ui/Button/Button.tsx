@@ -1,4 +1,6 @@
-export default function Button({ children, className = "", ...props }) {
+import type { ButtonHTMLAttributes } from "react";
+
+export default function Button({ children, className = "", ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       {...props}

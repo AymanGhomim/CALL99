@@ -1,4 +1,24 @@
 import FiltersBar from "../ui/FiltersBar";
+import { useTranslation } from "react-i18next";
+
+interface OrdersFiltersBarProps {
+  search: string;
+  onSearchChange: (value: string) => void;
+  dateFrom: string;
+  onDateFromChange: (value: string) => void;
+  dateTo: string;
+  onDateToChange: (value: string) => void;
+  status: string;
+  onStatusChange: (value: string) => void;
+  statusOptions?: string[];
+  service: string;
+  onServiceChange: (value: string) => void;
+  serviceOptions?: string[];
+  role: string;
+  onRoleChange: (value: string) => void;
+  roleOptions?: string[];
+  onFilter: () => void;
+}
 
 export default function OrdersFiltersBar({
   search,
@@ -17,13 +37,14 @@ export default function OrdersFiltersBar({
   onRoleChange,
   roleOptions = [],
   onFilter,
-}) {
+}: OrdersFiltersBarProps) {
+  const { t } = useTranslation();
   return (
     <FiltersBar
       search={{
         value: search,
         onChange: onSearchChange,
-        placeholder: "ابحث بالاسم أو رقم الهاتف",
+        placeholder: t("filters.searchNamePhone"),
       }}
       fields={[
         {
@@ -41,7 +62,7 @@ export default function OrdersFiltersBar({
         {
           key: "status",
           type: "select",
-          placeholder: "اختر الحالة",
+          placeholder: t("filters.selectStatus"),
           value: status,
           onChange: onStatusChange,
           options: statusOptions,
@@ -49,7 +70,7 @@ export default function OrdersFiltersBar({
         {
           key: "service",
           type: "select",
-          placeholder: "نوع الخدمة",
+          placeholder: t("filters.serviceType"),
           value: service,
           onChange: onServiceChange,
           options: serviceOptions,
@@ -57,7 +78,7 @@ export default function OrdersFiltersBar({
         {
           key: "role",
           type: "select",
-          placeholder: "اختر الدور",
+          placeholder: t("filters.selectRole"),
           value: role,
           onChange: onRoleChange,
           options: roleOptions,

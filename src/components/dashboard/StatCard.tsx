@@ -1,4 +1,9 @@
 import { cloneElement, isValidElement } from "react";
+import type { LucideProps } from "lucide-react";
+import type { StatCardData } from "../../types/dashboard";
+import { useTranslation } from "react-i18next";
+import { translateLegacyText } from "../../i18n/translateEnum";
+import useLocale from "../../i18n/useLocale";
 
 export default function StatCard({
   title,
@@ -9,7 +14,12 @@ export default function StatCard({
   change,
   changeType = "up",
   prefix = "",
-}) {
+}: StatCardData) {
+  const { t } = useTranslation();
+  const { formatCurrency } = useLocale();
+  const displayedValue = typeof value === "string" && /(?:ر\.س|ريال|SAR)/i.test(value)
+    ? formatCurrency(value)
+    : value;
   return (
     <div className="min-h-[142px] rounded-xl border border-[#f2e8e8] bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       <div className="mb-9 flex items-start justify-between">
@@ -19,7 +29,7 @@ export default function StatCard({
           style={{ backgroundColor: iconBg }}
         >
           <span style={{ color: iconColor }}>
-            {isValidElement(icon) ? cloneElement(icon, { size: 24 }) : icon}
+            {isValidElement<LucideProps>(icon) ? cloneElement(icon, { size: 24 }) : icon}
           </span>
         </div>
 
@@ -34,7 +44,7 @@ export default function StatCard({
                   : "text-emerald-500"
             }`}
           >
-            {change}
+            {typeof change === "string" ? translateLegacyText(change, t) : change}
           </span>
         ) : (
           <span />
@@ -42,12 +52,12 @@ export default function StatCard({
       </div>
 
       {/* Title */}
-      <p className="text-sm font-semibold text-[#3d3434]">{title}</p>
+      <p className="text-sm font-semibold text-[#3d3434]">{translateLegacyText(title, t)}</p>
 
       {/* Value with optional prefix */}
       <h3 className="mt-1 text-2xl font-extrabold text-[#75262d]">
         {prefix && <span className="text-xl font-bold">{prefix} </span>}
-        {value}
+        {displayedValue}
       </h3>
     </div>
   );

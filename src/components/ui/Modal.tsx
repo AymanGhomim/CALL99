@@ -1,5 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, type MouseEvent, type ReactNode } from "react";
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
+
+interface ModalProps {
+  open: boolean;
+  onClose: () => void;
+  title: ReactNode;
+  children: ReactNode;
+  maxWidth?: string;
+}
 
 export default function Modal({
   open,
@@ -7,14 +16,15 @@ export default function Modal({
   title,
   children,
   maxWidth = "max-w-[1200px]",
-}) {
+}: ModalProps) {
+  const { t } = useTranslation();
   useEffect(() => {
     if (!open) {
       return undefined;
     }
 
     const previousOverflow = document.body.style.overflow;
-    const handleEscape = (event) => {
+    const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         onClose?.();
       }
@@ -36,7 +46,7 @@ export default function Modal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-[1px]"
-      onMouseDown={(event) => {
+      onMouseDown={(event: MouseEvent<HTMLDivElement>) => {
         if (event.target === event.currentTarget) {
           onClose?.();
         }
@@ -56,7 +66,7 @@ export default function Modal({
             type="button"
             onClick={onClose}
             className="rounded-full p-2 text-[#75262d] transition hover:bg-[#f7ecee]"
-            aria-label="Close modal"
+            aria-label={t("common.closeModal")}
           >
             <X size={20} />
           </button>

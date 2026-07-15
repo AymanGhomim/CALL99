@@ -8,14 +8,16 @@ const gradients = [
   "linear-gradient(135deg,#211a35,#0d0a17)",
   "linear-gradient(135deg,#251d1d,#0e0a0a)",
 ];
+import { useTranslation } from "react-i18next";
 
-export default function ProviderGalleryCard({ count = 12 }) {
+export default function ProviderGalleryCard({ count = 12 }: { count?: number }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-xl border border-[#f2e8e8] bg-white p-5 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-base font-extrabold text-[#221b1b]">معرض الصور</h3>
+        <h3 className="text-base font-extrabold text-[#221b1b]">{t("provider.gallery")}</h3>
         <span className="text-xs font-semibold text-gray-400">
-          عدد الصور: {count} صورة
+          {t("provider.imageCount", { count })}
         </span>
       </div>
 

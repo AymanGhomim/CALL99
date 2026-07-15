@@ -1,5 +1,17 @@
 import { Calendar, Star } from "lucide-react";
 import Badge from "../ui/Badge";
+import type { ProviderBasicInfo } from "../../types/entities";
+import { useTranslation } from "react-i18next";
+import { translateStatus } from "../../i18n/translateEnum";
+
+interface ProviderInfoCardProps {
+  name: string;
+  status: string;
+  memberSince: string;
+  rating: number;
+  reviewsCount: number;
+  basicInfo: ProviderBasicInfo[];
+}
 
 export default function ProviderInfoCard({
   name,
@@ -8,7 +20,8 @@ export default function ProviderInfoCard({
   rating,
   reviewsCount,
   basicInfo,
-}) {
+}: ProviderInfoCardProps) {
+  const { t } = useTranslation();
   return (
     <div className="mb-6 rounded-xl border border-[#f2e8e8] bg-white p-8 shadow-sm">
       {/* Top row: Identity + Basic Info */}
@@ -17,7 +30,7 @@ export default function ProviderInfoCard({
         <div className="flex shrink-0 items-start gap-4">
           <div className="text-right">
             <Badge tone="purple" className="mb-2">
-              {status}
+              {translateStatus(status, t)}
             </Badge>
             <h2 className="text-xl font-extrabold text-[#221b1b]">{name}</h2>
             <p className="mt-1 flex items-center justify-end gap-2 text-sm text-gray-500">
@@ -26,7 +39,7 @@ export default function ProviderInfoCard({
             </p>
             <p className="mt-1 flex items-center justify-end gap-1.5 text-sm">
               <span className="font-bold text-[#221b1b]">
-                ({reviewsCount} تقييم)
+                {t("provider.reviewsCount", { count: reviewsCount })}
               </span>
               <span className="flex items-center gap-0.5 text-amber-400">
                 {Array.from({ length: 5 }, (_, index) => (
@@ -47,8 +60,8 @@ export default function ProviderInfoCard({
 
         {/* Left side: Basic info definition list (renders on left in RTL) */}
         <div className="flex-1">
-          <h3 className="mb-5 text-right text-lg font-extrabold text-[#221b1b]">
-            المعلومات الأساسية
+          <h3 className="mb-5 text-start text-lg font-extrabold text-[#221b1b]">
+            {t("provider.basicInfo")}
           </h3>
 
           <div className="grid grid-cols-1 gap-x-6 gap-y-4 text-sm sm:grid-cols-2">

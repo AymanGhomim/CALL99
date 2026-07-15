@@ -1,6 +1,7 @@
 import StatCard from "./StatCard";
+import type { StatCardData } from "../../types/dashboard";
 
-export default function StatsGrid({ stats }) {
+export default function StatsGrid({ stats }: { stats: StatCardData[] }) {
   return (
     <div
       className="grid gap-5"

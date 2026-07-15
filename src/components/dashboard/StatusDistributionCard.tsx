@@ -1,9 +1,12 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import ChartCard from "./ChartCard";
+import type { ColoredChartDataPoint } from "../../types/dashboard";
+import { useTranslation } from "react-i18next";
 
-export default function StatusDistributionCard({ data }) {
+export default function StatusDistributionCard({ data }: { data: ColoredChartDataPoint[] }) {
+  const { t } = useTranslation();
   return (
-    <ChartCard title="توزيع الطلبات حسب الحالة">
+    <ChartCard title={t("dashboard.charts.statusDistribution")}>
       <div className="flex items-center justify-between gap-4">
         <ul className="space-y-2 text-xs font-medium">
           {data.map((item) => (

@@ -1,4 +1,12 @@
-export default function ActivityCategoryTabs({ categories, value, onChange }) {
+import type { ActivityCategory } from "../../types/dashboard";
+
+interface ActivityCategoryTabsProps {
+  categories: ActivityCategory[];
+  value: string;
+  onChange: (value: string) => void;
+}
+
+export default function ActivityCategoryTabs({ categories, value, onChange }: ActivityCategoryTabsProps) {
   return (
     <div className="mb-6 flex flex-wrap items-center gap-3">
       {categories.map((category) => {
@@ -9,7 +17,7 @@ export default function ActivityCategoryTabs({ categories, value, onChange }) {
           <button
             key={category.value || "all"}
             type="button"
-            onClick={() => onChange?.(category.value)}
+            onClick={() => onChange(category.value)}
             className={`flex h-12 items-center gap-2 rounded-xl border px-5 text-sm font-bold transition-colors ${
               isActive
                 ? "border-[#642326] bg-[#642326] text-white"

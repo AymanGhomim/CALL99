@@ -1,7 +1,14 @@
 import { CalendarClock, CheckCircle2, ClipboardList, XCircle } from "lucide-react";
 import CenterStatCard from "../ui/CenterStatCard";
 
-export default function UserOrdersStats({ totalOrders, cancelledOrders, scheduledOrders, completedOrders }) {
+interface UserOrdersStatsProps {
+  totalOrders: number;
+  cancelledOrders: number;
+  scheduledOrders: number;
+  completedOrders: number;
+}
+
+export default function UserOrdersStats({ totalOrders, cancelledOrders, scheduledOrders, completedOrders }: UserOrdersStatsProps) {
   return (
     <div className="mb-6">
       <CenterStatCard

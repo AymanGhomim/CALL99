@@ -1,10 +1,27 @@
-import { useEffect } from "react";
+import { useEffect, type MouseEvent, type ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const toneStyles = {
   primary: { bg: "#f7ecee", fg: "#75262d", confirmBg: "bg-[#642326] hover:bg-[#542029]" },
   danger: { bg: "#fbeaea", fg: "#ef4444", confirmBg: "bg-red-500 hover:bg-red-600" },
   success: { bg: "#e8f8ef", fg: "#22c55e", confirmBg: "bg-emerald-500 hover:bg-emerald-600" },
-};
+} as const;
+
+type ConfirmTone = keyof typeof toneStyles;
+
+interface ConfirmDialogProps {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  icon?: LucideIcon;
+  title: ReactNode;
+  description?: ReactNode;
+  cancelLabel?: string;
+  confirmLabel?: string;
+  tone?: ConfirmTone;
+  loading?: boolean;
+}
 
 /**
  * Small centered confirmation popup: icon + title + description + cancel/confirm.
@@ -17,18 +34,19 @@ export default function ConfirmDialog({
   icon: Icon,
   title,
   description,
-  cancelLabel = "الغاء",
-  confirmLabel = "تاكيد",
+  cancelLabel,
+  confirmLabel,
   tone = "primary",
   loading = false,
-}) {
+}: ConfirmDialogProps) {
+  const { t } = useTranslation();
   useEffect(() => {
     if (!open) {
       return undefined;
     }
 
     const previousOverflow = document.body.style.overflow;
-    const handleEscape = (event) => {
+    const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         onClose?.();
       }
@@ -52,7 +70,7 @@ export default function ConfirmDialog({
   return (
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-[1px]"
-      onMouseDown={(event) => {
+      onMouseDown={(event: MouseEvent<HTMLDivElement>) => {
         if (event.target === event.currentTarget) {
           onClose?.();
         }
@@ -86,7 +104,7 @@ export default function ConfirmDialog({
             onClick={onClose}
             className="h-12 flex-1 rounded-xl border border-[#E5DCDC] bg-white text-sm font-bold text-[#3d3434] transition-colors duration-200 hover:bg-[#f7ecee]"
           >
-            {cancelLabel}
+            {cancelLabel ?? t("common.cancel")}
           </button>
 
           <button
@@ -95,7 +113,7 @@ export default function ConfirmDialog({
             onClick={onConfirm}
             className={`h-12 flex-1 rounded-xl text-sm font-bold text-white transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-70 ${styles.confirmBg}`}
           >
-            {confirmLabel}
+            {confirmLabel ?? t("common.confirm")}
           </button>
         </div>
       </div>

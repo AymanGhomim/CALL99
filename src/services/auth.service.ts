@@ -1,34 +1,57 @@
 import api from "./axios";
+import type { AuthSession } from "../store/authStore";
+import type { ApiResponse } from "../types/api";
 
-export const login = async (phone, password) => {
-  const { data } = await api.post("/auth/login", {
-    phone,
-    password,
-  });
+export type LoginResponse = ApiResponse<AuthSession>;
 
+export interface OtpResponse {
+  success: true;
+  meta: ApiResponse<never>["meta"];
+  data: { requested: boolean; otpCode?: string };
+}
+
+export interface ResetPasswordPayload {
+  phone: string;
+  otp: string;
+  newPassword: string;
+}
+
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export async function login(phone: string, password: string): Promise<LoginResponse> {
+  const { data } = await api.post<LoginResponse>("/auth/login", { phone, password });
   return data;
-};
+}
 
-// TODO: غيّر المسار ده بالـ endpoint الحقيقي من Swagger لو مختلف.
-// Swagger الحالي اللي اتبعت فيه response فقط بدون Endpoint.
-export const requestRegistrationOtp = async (phone) => {
-  const { data } = await api.post("/auth/register/request-otp", {
-    phone,
-  });
-
+export async function requestRegistrationOtp(phone: string): Promise<OtpResponse> {
+  const { data } = await api.post<OtpResponse>("/auth/phone-verification/request-otp", { phone });
   return data;
-};
+}
 
-export const verifyOtp = (data) => api.post("/auth/verify-otp", data);
+export async function requestPasswordResetOtp(phone: string): Promise<OtpResponse> {
+  const { data } = await api.post<OtpResponse>("/auth/forgot-password", { phone });
+  return data;
+}
 
-export const resendOtp = (phone) => requestRegistrationOtp(phone);
+export async function resetPassword(payload: ResetPasswordPayload): Promise<ApiResponse<{ updated: boolean }>> {
+  const { data } = await api.post<ApiResponse<{ updated: boolean }>>("/auth/reset-password", payload);
+  return data;
+}
 
-export const logout = async () => {
+export async function changePassword(payload: ChangePasswordPayload): Promise<ApiResponse<{ updated: boolean }>> {
+  const { data } = await api.post<ApiResponse<{ updated: boolean }>>("/auth/change-password", payload);
+  return data;
+}
+
+export function resendOtp(phone: string): Promise<OtpResponse> {
+  return requestRegistrationOtp(phone);
+}
+
+export async function logout(): Promise<unknown> {
   const sessionId = localStorage.getItem("sessionId");
-
-  const { data } = await api.post("/auth/logout", {
-    sessionId,
-  });
-
+  const { data } = await api.post<unknown>("/auth/logout", sessionId ? { sessionId } : {});
   return data;
-};
+}
